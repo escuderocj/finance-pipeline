@@ -17,6 +17,7 @@ from datetime import datetime
 import yaml
 
 from extractors.csv_extractor import CsvExtractor
+from extractors.investments_extractor import InvestmentsExtractor
 from extractors.paperless_extractor import PaperlessExtractor
 import pipeline
 import output
@@ -94,6 +95,7 @@ def main() -> None:
     # --- Extract ---
     extractors = [
         CsvExtractor(config),
+        InvestmentsExtractor(config),
         PaperlessExtractor(config),
     ]
 

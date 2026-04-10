@@ -311,10 +311,12 @@ document.getElementById("as-of").textContent = selectedRow.date
 
 // ── Snapshot cards ────────────────────────────────────────────────────────────
 const cardDefs = [
-  { label: "Net Worth",         key: "net_worth",         cls: "positive" },
-  { label: "Total Assets",      key: "total_assets",      cls: "neutral"  },
-  { label: "Total Liabilities", key: "total_liabilities", cls: "negative" },
-  { label: "Home Equity",       key: "home_equity",       cls: "positive" },
+  { label: "Net Worth",         key: "net_worth",          cls: "positive" },
+  { label: "Total Assets",      key: "total_assets",       cls: "neutral"  },
+  { label: "Total Liabilities", key: "total_liabilities",  cls: "negative" },
+  { label: "Home Equity",       key: "home_equity",        cls: "positive" },
+  { label: "Investments",       key: "investments_total",  cls: "positive" },
+  { label: "Cash",              key: "cash_total",         cls: "neutral"  },
 ];
 
 const cardsEl = document.getElementById("cards");
@@ -367,6 +369,8 @@ const COMPARE_ROWS = [
   { section: "Assets" },
   { label: "Home Value",        key: "home_value",        good: "up"   },
   { label: "Vehicle Value",     key: "_vehicle_value",    good: "up"   },
+  { label: "Investments",       key: "investments_total", good: "up"   },
+  { label: "Cash",              key: "cash_total",        good: "up"   },
   { section: "Liabilities" },
   { label: "Mortgage",          key: "debt_mortgage",     good: "down" },
   { label: "Auto Loans",        key: "_auto_loans",       good: "down" },
@@ -464,11 +468,13 @@ const CHART_DEFAULTS = {
 
 // ── Asset pie chart (selected month) ─────────────────────────────────────────
 const PIE_ASSETS = [
-  { label: "Home",       key: "home_value",            color: "#60a5fa" },
-  { label: "Tesla MY",   key: "car_tesla_model_y",     color: "#f472b6" },
-  { label: "Honda 2018", key: "car_2018_honda_accord", color: "#a78bfa" },
-  { label: "Honda 2010", key: "car_2010_honda_accord", color: "#fb923c" },
-  { label: "Civic 2007", key: "car_2007_honda_civic",  color: "#facc15" },
+  { label: "Home",        key: "home_value",            color: "#60a5fa" },
+  { label: "Tesla MY",    key: "car_tesla_model_y",     color: "#f472b6" },
+  { label: "Honda 2018",  key: "car_2018_honda_accord", color: "#a78bfa" },
+  { label: "Honda 2010",  key: "car_2010_honda_accord", color: "#fb923c" },
+  { label: "Civic 2007",  key: "car_2007_honda_civic",  color: "#facc15" },
+  { label: "Investments", key: "investments_total",     color: "#34d399" },
+  { label: "Cash",        key: "cash_total",            color: "#22d3ee" },
 ];
 
 let pieChart = null;
@@ -536,6 +542,8 @@ const ASSET_DATASETS_ALL = [
   { label: "Honda 2018",   key: "car_2018_honda_accord", borderColor: "#a78bfa", backgroundColor: "rgba(167,139,250,0.25)" },
   { label: "Honda 2010",   key: "car_2010_honda_accord", borderColor: "#fb923c", backgroundColor: "rgba(251,146,60,0.25)"  },
   { label: "Civic 2007",   key: "car_2007_honda_civic",  borderColor: "#facc15", backgroundColor: "rgba(250,204,21,0.15)"  },
+  { label: "Investments",  key: "investments_total",     borderColor: "#34d399", backgroundColor: "rgba(52,211,153,0.2)"   },
+  { label: "Cash",         key: "cash_total",            borderColor: "#22d3ee", backgroundColor: "rgba(34,211,238,0.15)"  },
 ];
 
 // Only include datasets where at least one month has a non-null, non-zero value

@@ -21,6 +21,7 @@ paths:
 csv_files:
   zillow: "Zillow Estimate, 2108 N 3rd St.csv"
   debt: "Debt.csv"
+  investments_and_cash: "Investments_and_Cash.csv"
 
 # Assets sold/disposed: field -> first month they should read 0 (YYYY-MM-01)
 # asset_disposals:

@@ -53,6 +53,7 @@ def _write_summary(rows: list[dict], out_dir: str) -> None:
     asset_cols = [
         "home_value", "car_tesla_model_y", "car_2018_honda_accord",
         "car_2010_honda_accord", "car_2007_honda_civic",
+        "investments_total", "cash_total",
     ]
     liability_cols = [
         "debt_mortgage", "debt_student_loan", "debt_car_tesla",

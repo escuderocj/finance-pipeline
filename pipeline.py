@@ -12,6 +12,8 @@ ASSET_COLUMNS = [
     "car_2018_honda_accord",
     "car_2010_honda_accord",
     "car_2007_honda_civic",
+    "investments_total",
+    "cash_total",
 ]
 
 LIABILITY_COLUMNS = [
