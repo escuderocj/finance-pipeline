@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      padding: 24px;
+    }
+
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 4px; }
+    h2 { font-size: 1rem; font-weight: 600; color: #94a3b8; margin-bottom: 16px; }
+
+    .subtitle { font-size: 0.875rem; color: #94a3b8; margin-bottom: 24px; }
+
+    /* ── Snapshot cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .card-value { font-size: 1.5rem; font-weight: 700; }
+    .card-value.positive { color: #34d399; }
+    .card-value.negative { color: #f87171; }
+    .card-value.neutral  { color: #e2e8f0; }
+
+    /* ── Comparison section ── */
+    .compare-section {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+
+    .compare-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .compare-controls label { font-size: 0.8rem; color: #64748b; }
+
+    .compare-controls select {
+      background: #0f1117;
+      border: 1px solid #3d4460;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.875rem;
+      padding: 6px 10px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .compare-controls select:focus { border-color: #60a5fa; }
+
+    .compare-vs {
+      font-size: 0.75rem;
+      color: #475569;
+      padding: 0 4px;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .compare-table th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      text-align: right;
+      padding: 6px 12px 10px;
+      border-bottom: 1px solid #2d3348;
+    }
+
+    .compare-table th:first-child { text-align: left; }
+
+    .compare-table td {
+      padding: 8px 12px;
+      font-size: 0.875rem;
+      text-align: right;
+      border-bottom: 1px solid #1a1f30;
+    }
+
+    .compare-table td:first-child {
+      text-align: left;
+      color: #94a3b8;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: #252a40; }
+
+    .compare-table .section-header td {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      padding-top: 16px;
+      background: none;
+    }
+
+    .delta { font-weight: 600; }
+    .delta.up   { color: #34d399; }
+    .delta.down { color: #f87171; }
+    .delta.flat { color: #64748b; }
+
+    /* ── Charts ── */
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 24px;
+    }
+
+    .chart-box {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .chart-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 16px;
+    }
+
+    canvas { max-height: 280px; }
+
+    /* ── To-do list ── */
+    .todo-section {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+
+    .todo-list {
+      list-style: none;
+      margin-top: 12px;
+    }
+
+    .todo-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1a1f30;
+      font-size: 0.875rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .todo-list li:last-child { border-bottom: none; }
+
+    .todo-badge {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid #3d4460;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    .todo-list strong { color: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <h1>Finance Dashboard</h1>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+    <p class="subtitle" id="as-of" style="margin:0"></p>
+    <select id="sel-month" style="background:#1e2130;border:1px solid #3d4460;border-radius:8px;color:#e2e8f0;font-size:0.875rem;padding:6px 10px;cursor:pointer;outline:none;"></select>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <!-- Asset pie chart row -->
+  <div style="display:grid;grid-template-columns:minmax(300px,480px) 1fr;gap:24px;margin-bottom:24px;align-items:start;">
+    <div class="chart-box">
+      <div class="chart-title">Asset Breakdown — <span id="pie-month-label"></span></div>
+      <canvas id="chart-assets-pie" style="max-height:280px;"></canvas>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;" id="pie-legend-detail"></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box">
+      <div class="chart-title">Net Worth Over Time</div>
+      <canvas id="chart-networth"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Asset Breakdown</div>
+      <canvas id="chart-assets"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Liability Breakdown</div>
+      <canvas id="chart-liabilities"></canvas>
+    </div>
+  </div>
+
+  <!-- Month comparison — moved below charts -->
+  <div class="compare-section" style="margin-top:24px;">
+    <div class="compare-controls">
+      <h2 style="margin:0">Month Comparison</h2>
+      <div style="flex:1"></div>
+      <label for="sel-a">Compare</label>
+      <select id="sel-a"></select>
+      <span class="compare-vs">vs</span>
+      <select id="sel-b"></select>
+    </div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th id="col-a-head"></th>
+          <th id="col-b-head"></th>
+          <th>Change</th>
+          <th>Change %</th>
+        </tr>
+      </thead>
+      <tbody id="compare-body"></tbody>
+    </table>
+  </div>
+
+<script>
+// ── Embedded pipeline data ──────────────────────────────────────────────────
+const DATA = /*PIPELINE_DATA_PLACEHOLDER*/;
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmt(v) {
+  if (v == null) return "—";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+}
+
+function fmtPct(v) {
+  if (v == null) return "—";
+  return (v >= 0 ? "+" : "") + v.toFixed(1) + "%";
+}
+
+function monthLabel(dateStr) {
+  const [y, m] = dateStr.split("-");
+  return new Date(+y, +m - 1, 1).toLocaleDateString("en-US", { year: "numeric", month: "short" });
+}
+
+function chartLabels(data) {
+  return data.map(r => monthLabel(r.date));
+}
+
+function col(data, key) {
+  return data.map(r => r[key] ?? null);
+}
+
+// ── Month selector ────────────────────────────────────────────────────────────
+const hasData = r => r.net_worth != null || r.total_assets != null;
+const dataMonths = DATA.filter(hasData);
+
+const monthSel = document.getElementById("sel-month");
+dataMonths.slice().reverse().forEach(r => {
+  const opt = document.createElement("option");
+  opt.value = r.date;
+  opt.textContent = monthLabel(r.date);
+  monthSel.appendChild(opt);
+});
+// Default: most recent month with data
+monthSel.selectedIndex = 0;
+
+let selectedRow = dataMonths[dataMonths.length - 1] || {};
+
+monthSel.addEventListener("change", () => {
+  selectedRow = DATA.find(r => r.date === monthSel.value) || {};
+  document.getElementById("as-of").textContent = selectedRow.date
+    ? "As of " + new Date(selectedRow.date + "T12:00:00").toLocaleDateString("en-US", { year: "numeric", month: "long" })
+    : "";
+  renderCards(selectedRow);
+  renderAssetPie(selectedRow);
+});
+
+document.getElementById("as-of").textContent = selectedRow.date
+  ? "As of " + new Date(selectedRow.date + "T12:00:00").toLocaleDateString("en-US", { year: "numeric", month: "long" })
+  : "";
+
+// ── Snapshot cards ────────────────────────────────────────────────────────────
+const cardDefs = [
+  { label: "Net Worth",         key: "net_worth",         cls: "positive" },
+  { label: "Total Assets",      key: "total_assets",      cls: "neutral"  },
+  { label: "Total Liabilities", key: "total_liabilities", cls: "negative" },
+  { label: "Home Equity",       key: "home_equity",       cls: "positive" },
+];
+
+const cardsEl = document.getElementById("cards");
+
+function renderCards(row) {
+  cardsEl.innerHTML = "";
+  cardDefs.forEach(({ label, key, cls }) => {
+    const v = row[key];
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<div class="card-label">${label}</div>`
+      + `<div class="card-value ${v != null && v < 0 ? "negative" : cls}">${fmt(v)}</div>`;
+    cardsEl.appendChild(card);
+  });
+}
+
+renderCards(selectedRow);
+
+// ── Month comparison ──────────────────────────────────────────────────────────
+// Vehicle value and auto loan totals are computed inline from row data.
+// Keys prefixed with "_" are computed; all others are direct row field lookups.
+
+const CAR_KEYS  = ["car_tesla_model_y", "car_2018_honda_accord", "car_2010_honda_accord", "car_2007_honda_civic"];
+const LOAN_KEYS = ["debt_car_tesla", "debt_car_2018_accord", "debt_car_2010_accord", "debt_car_2007_civic"];
+
+function getCompareVal(row, key) {
+  if (key === "_vehicle_value") {
+    const vals = CAR_KEYS.map(k => row[k] ?? 0);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    return sum > 0 ? sum : null;
+  }
+  if (key === "_auto_loans") {
+    const vals = LOAN_KEYS.map(k => row[k] ?? 0);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    return sum > 0 ? sum : null;
+  }
+  if (key === "_vehicle_equity") {
+    const vv = getCompareVal(row, "_vehicle_value");
+    const al = getCompareVal(row, "_auto_loans");
+    return vv != null ? (vv - (al ?? 0)) : null;
+  }
+  return row[key] ?? null;
+}
+
+const COMPARE_ROWS = [
+  { section: "Summary" },
+  { label: "Net Worth",         key: "net_worth",         good: "up"   },
+  { label: "Total Assets",      key: "total_assets",      good: "up"   },
+  { label: "Total Liabilities", key: "total_liabilities", good: "down" },
+  { section: "Assets" },
+  { label: "Home Value",        key: "home_value",        good: "up"   },
+  { label: "Vehicle Value",     key: "_vehicle_value",    good: "up"   },
+  { section: "Liabilities" },
+  { label: "Mortgage",          key: "debt_mortgage",     good: "down" },
+  { label: "Auto Loans",        key: "_auto_loans",       good: "down" },
+  { section: "Equity" },
+  { label: "Home Equity",       key: "home_equity",       good: "up"   },
+  { label: "Vehicle Equity",    key: "_vehicle_equity",   good: "up"   },
+];
+
+const selA = document.getElementById("sel-a");
+const selB = document.getElementById("sel-b");
+
+dataMonths.slice().reverse().forEach(r => {
+  [selA, selB].forEach(sel => {
+    const opt = document.createElement("option");
+    opt.value = r.date;
+    opt.textContent = monthLabel(r.date);
+    sel.appendChild(opt);
+  });
+});
+
+selA.selectedIndex = 0;
+selB.selectedIndex = Math.min(1, dataMonths.length - 1);
+
+function byDate(dateStr) {
+  return DATA.find(r => r.date === dateStr) || {};
+}
+
+function renderComparison() {
+  const rowA = byDate(selA.value);
+  const rowB = byDate(selB.value);
+
+  document.getElementById("col-a-head").textContent = monthLabel(selA.value);
+  document.getElementById("col-b-head").textContent = monthLabel(selB.value);
+
+  const tbody = document.getElementById("compare-body");
+  tbody.innerHTML = "";
+
+  COMPARE_ROWS.forEach(row => {
+    const tr = document.createElement("tr");
+
+    if (row.section !== undefined) {
+      tr.className = "section-header";
+      tr.innerHTML = `<td colspan="5">${row.section}</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    const a = getCompareVal(rowA, row.key);
+    const b = getCompareVal(rowB, row.key);
+
+    let deltaAmt = null, deltaPct = null, deltaClass = "flat";
+    if (a != null && b != null) {
+      deltaAmt = a - b;
+      deltaPct = b !== 0 ? ((a - b) / Math.abs(b)) * 100 : null;
+      if (deltaAmt !== 0) {
+        const isUp = deltaAmt > 0;
+        deltaClass = (row.good === "up" ? isUp : !isUp) ? "up" : "down";
+      }
+    }
+
+    tr.innerHTML = `<td>${row.label}</td>`
+      + `<td>${fmt(a)}</td>`
+      + `<td>${fmt(b)}</td>`
+      + `<td class="delta ${deltaClass}">${deltaAmt != null ? (deltaAmt >= 0 ? "+" : "") + fmt(deltaAmt) : "—"}</td>`
+      + `<td class="delta ${deltaClass}">${deltaPct != null ? fmtPct(deltaPct) : "—"}</td>`;
+
+    tbody.appendChild(tr);
+  });
+}
+
+selA.addEventListener("change", renderComparison);
+selB.addEventListener("change", renderComparison);
+renderComparison();
+
+// ── Chart defaults ────────────────────────────────────────────────────────────
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: true,
+  interaction: { mode: "index", intersect: false },
+  plugins: { legend: { labels: { color: "#94a3b8", boxWidth: 12 } } },
+  scales: {
+    x: {
+      ticks: { color: "#64748b", maxTicksLimit: 8, maxRotation: 0 },
+      grid: { color: "#2d3348" },
+    },
+    y: {
+      ticks: {
+        color: "#64748b",
+        callback: v => "$" + (Math.abs(v) >= 1000 ? (v / 1000).toFixed(0) + "k" : v),
+      },
+      grid: { color: "#2d3348" },
+    },
+  },
+};
+
+// ── Asset pie chart (selected month) ─────────────────────────────────────────
+const PIE_ASSETS = [
+  { label: "Home",       key: "home_value",            color: "#60a5fa" },
+  { label: "Tesla MY",   key: "car_tesla_model_y",     color: "#f472b6" },
+  { label: "Honda 2018", key: "car_2018_honda_accord", color: "#a78bfa" },
+  { label: "Honda 2010", key: "car_2010_honda_accord", color: "#fb923c" },
+  { label: "Civic 2007", key: "car_2007_honda_civic",  color: "#facc15" },
+];
+
+let pieChart = null;
+
+function renderAssetPie(row) {
+  const active = PIE_ASSETS.filter(a => (row[a.key] ?? 0) > 0);
+  const labels  = active.map(a => a.label);
+  const values  = active.map(a => row[a.key]);
+  const colors  = active.map(a => a.color);
+  const total   = values.reduce((s, v) => s + v, 0);
+
+  document.getElementById("pie-month-label").textContent =
+    row.date ? monthLabel(row.date) : "";
+
+  if (pieChart) pieChart.destroy();
+  if (active.length === 0) return;
+
+  pieChart = new Chart(document.getElementById("chart-assets-pie"), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 1, borderColor: "#0f1117" }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { labels: { color: "#94a3b8", boxWidth: 12 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const pct = total > 0 ? ((ctx.raw / total) * 100).toFixed(1) : "0.0";
+              return ` ${fmt(ctx.raw)} (${pct}%)`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+renderAssetPie(selectedRow);
+
+// ── Net worth line chart ──────────────────────────────────────────────────────
+new Chart(document.getElementById("chart-networth"), {
+  type: "line",
+  data: {
+    labels: chartLabels(DATA),
+    datasets: [{
+      label: "Net Worth",
+      data: col(DATA, "net_worth"),
+      borderColor: "#34d399",
+      backgroundColor: "rgba(52,211,153,0.08)",
+      fill: true,
+      tension: 0.3,
+      pointRadius: 0,
+      borderWidth: 2,
+      spanGaps: true,
+    }],
+  },
+  options: CHART_DEFAULTS,
+});
+
+// ── Asset stacked area chart — zero-value assets excluded from legend ─────────
+const ASSET_DATASETS_ALL = [
+  { label: "Home",         key: "home_value",            borderColor: "#60a5fa", backgroundColor: "rgba(96,165,250,0.25)"  },
+  { label: "Tesla MY",     key: "car_tesla_model_y",     borderColor: "#f472b6", backgroundColor: "rgba(244,114,182,0.25)" },
+  { label: "Honda 2018",   key: "car_2018_honda_accord", borderColor: "#a78bfa", backgroundColor: "rgba(167,139,250,0.25)" },
+  { label: "Honda 2010",   key: "car_2010_honda_accord", borderColor: "#fb923c", backgroundColor: "rgba(251,146,60,0.25)"  },
+  { label: "Civic 2007",   key: "car_2007_honda_civic",  borderColor: "#facc15", backgroundColor: "rgba(250,204,21,0.15)"  },
+];
+
+// Only include datasets where at least one month has a non-null, non-zero value
+const activeAssetDatasets = ASSET_DATASETS_ALL
+  .filter(d => DATA.some(r => (r[d.key] ?? 0) > 0))
+  .map(d => ({
+    label: d.label,
+    data: col(DATA, d.key),
+    borderColor: d.borderColor,
+    backgroundColor: d.backgroundColor,
+    fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5, spanGaps: true,
+  }));
+
+new Chart(document.getElementById("chart-assets"), {
+  type: "line",
+  data: { labels: chartLabels(DATA), datasets: activeAssetDatasets },
+  options: { ...CHART_DEFAULTS, scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, stacked: true } } },
+});
+
+// ── Liability stacked area chart ──────────────────────────────────────────────
+new Chart(document.getElementById("chart-liabilities"), {
+  type: "line",
+  data: {
+    labels: chartLabels(DATA),
+    datasets: [
+      { label: "Mortgage",     data: col(DATA, "debt_mortgage"),        borderColor: "#f87171", backgroundColor: "rgba(248,113,113,0.3)",  fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+      { label: "Student Loan", data: col(DATA, "debt_student_loan"),    borderColor: "#fb923c", backgroundColor: "rgba(251,146,60,0.25)",  fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+      { label: "Tesla Loan",   data: col(DATA, "debt_car_tesla"),       borderColor: "#f472b6", backgroundColor: "rgba(244,114,182,0.2)",  fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+      { label: "Accord Loan",  data: col(DATA, "debt_car_2018_accord"), borderColor: "#a78bfa", backgroundColor: "rgba(167,139,250,0.2)",  fill: true, tension: 0.3, pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+    ],
+  },
+  options: { ...CHART_DEFAULTS, scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, stacked: true } } },
+});
+</script>
+
+  <!-- Financial To-Do List -->
+  <div class="todo-section">
+    <h2>Financial To-Do</h2>
+    <ul class="todo-list">
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Open Fidelity UNIQUE 529 for Nico</strong> — account is listed in Accounts.csv as "To be opened"; no historical data tracked yet.</span>
+      </li>
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Complete missing account numbers</strong> — Wealthfront (Kim), SoFi (Kim), Fidelity (Kim), Robinhood (Kim), and Ledger wallets all show &lt;to be inserted&gt; in Accounts.csv.</span>
+      </li>
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Rollover Robinhood Traditional IRA → Alight 401k</strong> — Robinhood 5-year match timer expires 3/3/2029. Must complete rollover before that date to avoid forfeiting matched funds.</span>
+      </li>
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Move Robinhood Roth IRA → Fidelity Roth IRA</strong> — same Robinhood 5-year timer, expires 3/3/2029.</span>
+      </li>
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Add crypto wallet balances to pipeline</strong> — Venmo (BTC/ETH) and Ledger (BTC/ETH) wallets tracked in Accounts.csv but have no balance history and no pipeline extractor yet.</span>
+      </li>
+      <li>
+        <div class="todo-badge"></div>
+        <span><strong>Set up automated investment account balance tracking</strong> — Investments_and_Cash.csv is currently updated manually; a future extractor would automate this.</span>
+      </li>
+    </ul>
+  </div>
+
+</body>
+</html>

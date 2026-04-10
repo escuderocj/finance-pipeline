@@ -1,0 +1,27 @@
+paperless:
+  url: "http://192.168.1.19:8000"
+  token: "YOUR_PAPERLESS_API_TOKEN_HERE"
+
+document_types:
+  vehicle_update: 88
+  mortgage: 111
+
+# Maps CARFAX vehicle names (as they appear in email content) to data model column names.
+# Update this when vehicles change.
+vehicle_map:
+  "2025 TESLA MODEL Y": "car_tesla_model_y"
+  "2018 HONDA ACCORD": "car_2018_honda_accord"
+  "2010 HONDA ACCORD": "car_2010_honda_accord"
+  "2007 HONDA CIVIC": "car_2007_honda_civic"
+
+paths:
+  input_dir: "/data/assets"
+  output_dir: "/data/assets/output"
+
+csv_files:
+  zillow: "Zillow Estimate, 2108 N 3rd St.csv"
+  debt: "Debt.csv"
+
+# Assets sold/disposed: field -> first month they should read 0 (YYYY-MM-01)
+# asset_disposals:
+#   car_2010_honda_accord: "2025-02-01"
